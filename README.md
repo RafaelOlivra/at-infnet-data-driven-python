@@ -54,7 +54,7 @@ Para iniciar o repositório localmente, siga os passos abaixo:
 3. Inicialize o Streamlit:
 
     ```console
-    streamlit run main.py
+    streamlit run src/main.py
     ```
 
 4. Acesse o dashboard através do navegador no endereço: [http://localhost:8501](http://localhost:8501).
