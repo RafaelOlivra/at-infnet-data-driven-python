@@ -8,6 +8,7 @@ from statsbombpy import sb
 from typing import List
 
 from stats.competitions import get_matches_df
+from typing import Literal
 
 
 class PlayerStatsError(Exception):
@@ -50,7 +51,36 @@ def get_match_df(match_id: int) -> pd.DataFrame:
 
 
 @st.cache_resource(ttl=3600)
-def get_player_stats(match_id, player_name) -> str:
+def get_players_stats(
+    match_id: int,
+    time: Literal[
+        "whole_match", "first_half", "second_half", "overtime"
+    ] = "whole_match",
+) -> str:
+    # Get all players names in the match
+    events = get_match_df(match_id)
+
+    # Filter events based on the time
+    if time == "first_half":
+        events = events[events["minute"] <= 45]
+    elif time == "second_half":
+        events = events[events["minute"] > 45]
+    elif time == "overtime":
+        events = events[events["minute"] > 90]
+
+    # Get the unique players
+    players = events["player"].dropna().unique()
+
+    # Get the stats for each player
+    players_stats = {}
+    for player in players:
+        players_stats[player] = get_single_player_stats(match_id, player)
+
+    return to_json(players_stats)
+
+
+@st.cache_resource(ttl=3600)
+def get_single_player_stats(match_id, player_name) -> str:
     """
     Returns the consolidated statistics of a specific player in a match.
 

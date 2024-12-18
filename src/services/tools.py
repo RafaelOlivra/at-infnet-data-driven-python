@@ -2,7 +2,12 @@ import os
 
 from langchain.agents import Tool
 from langchain_community.utilities import WikipediaAPIWrapper, GoogleSerperAPIWrapper
-from tools.football import get_specialist_comments, get_match_details, get_match_stats
+from tools.football import (
+    get_specialist_comments_tool,
+    get_match_details_tool,
+    get_match_stats_tool,
+    get_player_stats_tool,
+)
 
 
 def _setup_tools() -> list[Tool]:
@@ -15,9 +20,10 @@ def _setup_tools() -> list[Tool]:
     wikipedia = WikipediaAPIWrapper()
 
     return [
-        get_match_details,
-        get_specialist_comments,
-        get_match_stats,
+        get_match_details_tool,
+        get_player_stats_tool,
+        get_specialist_comments_tool,
+        get_match_stats_tool,
         Tool(
             name="SearchTeamInformation",
             func=search.run,

@@ -5,7 +5,7 @@ from langchain.prompts import PromptTemplate
 
 
 from stats.competitions import get_matches
-from stats.matches import get_lineups, get_match_stats_summary
+from stats.matches import get_lineups, get_match_stats_summary, get_players_stats
 import json
 import yaml
 import streamlit as st
@@ -115,7 +115,7 @@ def retrieve_match_details(action_input: str) -> str:
 
 @tool
 @st.cache_resource(ttl=3600)
-def get_match_details(action_input: str) -> str:
+def get_match_details_tool(action_input: str) -> str:
     """
     Get the details of a specific match
 
@@ -132,10 +132,10 @@ def get_match_details(action_input: str) -> str:
 
 @tool
 @st.cache_data(ttl=3600)
-def get_match_stats(action_input: str) -> str:
+def get_match_stats_tool(action_input: str) -> str:
     """
     Get the match statistics and metrics for a specific match.
-    Available statistics include total shots, total passes, corners and yello/red cards.
+    Available statistics include total shots, total passes, corners and yellow/red cards.
 
     Args:
         - action_input(str): The input data containing the match_id.
@@ -150,7 +150,26 @@ def get_match_stats(action_input: str) -> str:
 
 @tool
 @st.cache_data(ttl=3600)
-def get_specialist_comments(action_input: str) -> str:
+def get_player_stats_tool(action_input: str) -> dict:
+    """
+    Get the summary statistics for all players based on the match_id.
+
+    Args:
+        - action_input(str): The input data containing the match_id.
+          format: {
+              "match_id": 12345,
+              "time": "whole_match" (Use any of this: "whole_match", "first_half" or "second_half" or "overtime")
+            }
+    """
+    match_id = int(json.loads(action_input)["match_id"])
+    time = json.loads(action_input)["time"]
+    player_stats = get_players_stats(match_id=match_id, time=time)
+    return player_stats
+
+
+@tool
+@st.cache_data(ttl=3600)
+def get_specialist_comments_tool(action_input: str) -> str:
     """
     Provide an overview of the match and the match details.
     Provide comments of a sports specialist about a specific match.
