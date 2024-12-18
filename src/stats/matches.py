@@ -46,6 +46,13 @@ def get_events(match_id: int) -> str:
 
 
 @st.cache_resource(ttl=3600)
+def get_team_players(match_id: int, team: str) -> list:
+    data = sb.lineups(match_id=match_id)
+    team_data = data[team]
+    return team_data["player"].tolist()
+
+
+@st.cache_resource(ttl=3600)
 def get_match_df(match_id: int) -> pd.DataFrame:
     return sb.events(match_id=match_id)
 

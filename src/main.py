@@ -8,8 +8,6 @@ from stats.competitions import get_competitions, get_matches
 from stats.matches import get_match_df, get_match_score_details, get_match_stats_summary
 from services.gemini_agent import GeminiAgent as AiFootballAgent
 
-# from services.openai_agent import OpenAIAgent as AiFootballAgent
-
 # Load environment variables
 load_dotenv()
 
@@ -17,14 +15,14 @@ load_dotenv()
 # Page layout and setup
 # ------------------------
 
-APP_TITLE = "⚽️ AI Football Match Analyzer"
+APP_TITLE = "AI Football Match Analyzer"
 
 # Set page title
 st.set_page_config(
     page_title=APP_TITLE,
     page_icon="⚽️",
     layout="centered",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 
@@ -151,7 +149,7 @@ def center_align(content):
 
 def Sidebar():
 
-    st.sidebar.title(APP_TITLE)
+    st.sidebar.title("⚽️ " + APP_TITLE)
 
     # Step 1: Select a Competition
     selected_competition = None
@@ -224,11 +222,20 @@ def Sidebar():
         set_state("selected_home_team", match_details["home_team"])
         set_state("selected_alway_team", match_details["away_team"])
 
+        # Visualizations
+        st.sidebar.header("📊 Match Visualizations")
+
+        options = ["🤖 Match Chat", "🔎 Data Explorer"]
+        visualization = st.sidebar.radio("Select a visualization to display:", options)
+        set_state("selected_visualization", visualization)
+
 
 # ------------------------
 # Main app
 # ------------------------
 def Main():
+
+    visualization = get_state("selected_visualization")
 
     # Get the current state
     competition_id = get_state("selected_competition_id")
@@ -239,108 +246,153 @@ def Main():
     alway_team = get_state("selected_alway_team")
     match_df = get_match_df(match_id)
 
+    col1, col2, col3 = st.columns([5, 2, 2])
+    col1.subheader(visualization)
     if not match_id:
-        st.title(APP_TITLE)
+        st.title(visualization)
         st.write(
             "Use the sidebar to select a competition, then a match, and start a conversation."
         )
         return
 
-    col1, col2, col3 = st.columns([5, 2, 2])
+    # ------------------------
+    # 🤖 Match Chat
+    # ------------------------
+    if visualization == "🤖 Match Chat":
 
-    col1.subheader("🤖 Match Chat")
+        # Set up the agent
+        agent = get_state("agent")
+        if not agent:
+            agent = AiFootballAgent()
+            set_state("agent", agent)
 
-    # Set up the agent
-    agent = get_state("agent")
-    if not agent:
-        agent = AiFootballAgent()
-        set_state("agent", agent)
-
-    # Clear chat history if the match changes
-    if get_state("previous_match_id") != match_id:
-        agent.clear_chat_history()
-        set_state("previous_match_id", match_id)
-
-    # Clear the streaming leftover after we get the complete response
-    CLEAR_STREAMING_THOUGHTS = False
-
-    # Clear chat history
-    disable_btns = not agent.has_chat_history()
-    with col2:
-        if st.button("Clean 🗑", use_container_width=True, disabled=disable_btns):
+        # Clear chat history if the match changes
+        if get_state("previous_match_id") != match_id:
             agent.clear_chat_history()
-            st.rerun()
+            set_state("previous_match_id", match_id)
 
-    # Export chat history to JSON
-    with col3:
-        json = agent.chat_history_to_json()
-        st.download_button(
-            "Export ⬇️",
-            json,
-            "football-ai-chat-history.json",
-            "application/json",
-            key="export-chat",
-            use_container_width=True,
-            disabled=disable_btns,
-        )
+        # Clear the streaming leftover after we get the complete response
+        CLEAR_STREAMING_THOUGHTS = False
 
-    # Match details
-    display_match_score(competition_id, season_id, match_id)
-    display_overall_match_stats(match_id, home_team, alway_team)
+        # Clear chat history
+        disable_btns = not agent.has_chat_history()
+        with col2:
+            if st.button(
+                "Clear Chat 🗑", use_container_width=True, disabled=disable_btns
+            ):
+                agent.clear_chat_history()
+                st.rerun()
 
-    # Display chat messages from history on app rerun
-    st.write("#### Chat")
-
-    chat_history = agent.chat_history()
-    if not chat_history:
-        st.warning(
-            """
-            Ask a question to begin!  
-
-            - "Who made the most passes in the match?"
-            - "Which player had the most shots in the first half?"
-            """
-        )
-
-    st.write(" ")
-    for message in chat_history:
-        with st.chat_message(message.type):
-            st.markdown(message.content)
-
-    # Accept user input
-    if user_input := st.chat_input("Em que posso ajudar?"):
-        with st.chat_message("human"):
-            st.markdown(user_input)
-
-        # Get response from agent
-        try:
-            streaming_callback = StreamlitCallbackHandler(
-                st.container(), max_thought_containers=2
+        # Export chat history to JSON
+        with col3:
+            json = agent.chat_history_to_json()
+            st.download_button(
+                "Export Chat ⬇️",
+                json,
+                "football-ai-chat-history.json",
+                "application/json",
+                key="export-chat",
+                use_container_width=True,
+                disabled=disable_btns,
             )
 
-            # Prepare input for the agent
-            input_data = {
-                "match_id": match_id,
-                "match_name": match_title,
-                "input": user_input,
-                "competition_id": competition_id,
-                "season_id": season_id,
-            }
+        # Match details
+        display_match_score(competition_id, season_id, match_id)
+        display_overall_match_stats(match_id, home_team, alway_team)
 
-            # Ask the agent
-            st.markdown(
-                agent.ask(
-                    query=user_input,
-                    input_data=input_data,
-                    callbacks=[streaming_callback],
+        # Display chat messages from history on app rerun
+        st.write("#### Chat")
+
+        chat_history = agent.chat_history()
+        if not chat_history:
+            st.warning(
+                """
+                Ask a question to begin!  
+
+                - "Who made the most passes in the match?"
+                - "Which player had the most shots in the first half?"
+                """
+            )
+
+        st.write(" ")
+        for message in chat_history:
+            with st.chat_message(message.type):
+                st.markdown(message.content)
+
+        # Accept user input
+        if user_input := st.chat_input("Em que posso ajudar?"):
+            with st.chat_message("human"):
+                st.markdown(user_input)
+
+            # Get response from agent
+            try:
+                streaming_callback = StreamlitCallbackHandler(
+                    st.container(), max_thought_containers=2
                 )
-            )
-        except Exception as e:
-            st.error(e)
 
-        # Clear the streaming output and show the final response
-        if CLEAR_STREAMING_THOUGHTS:
-            st.rerun()
+                # Prepare input for the agent
+                input_data = {
+                    "match_id": match_id,
+                    "match_name": match_title,
+                    "input": user_input,
+                    "competition_id": competition_id,
+                    "season_id": season_id,
+                }
+
+                # Ask the agent
+                st.markdown(
+                    agent.ask(
+                        query=user_input,
+                        input_data=input_data,
+                        callbacks=[streaming_callback],
+                    )
+                )
+            except Exception as e:
+                st.error(e)
+
+            # Clear the streaming output and show the final response
+            if CLEAR_STREAMING_THOUGHTS:
+                st.rerun()
+
+    # ------------------------
+    # 🔎 Data Explorer
+    # ------------------------
+    if visualization == "🔎 Data Explorer":
+
+        display_match_score(competition_id, season_id, match_id)
+
+        st.write("#### Data Explorer")
+
+        # Make a multiselect for selecting the columns to display
+        columns = st.multiselect(
+            "Columns", match_df.columns.tolist(), default=match_df.columns.tolist()
+        )
+        df = match_df[columns]
+
+        # Allow user to filter the displayed data with a search_filter box
+        search_filter = st.text_input("Filter Columns", "")
+        if search_filter:
+            df = df[
+                df.astype(str)
+                .apply(lambda x: x.str.contains(search_filter, case=False, na=False))
+                .any(axis=1)
+            ]
+
+        # Show the data in a dataframe
+        st.dataframe(df, use_container_width=True)
+
+        # Download the filtered data
+        st.write("##### Download Data")
+        st.write("Click the button below to download the filtered data as a CSV file.")
+        csv_content = df.to_csv(index=False)
+        st.download_button(
+            label="Download CSV",
+            data=csv_content,
+            file_name=f"football-match-{match_id}.csv",
+            mime="text/csv",
+            use_container_width=True,
+            type="primary",
+        )
 
 
 if __name__ == "__main__":
