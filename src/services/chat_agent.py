@@ -48,6 +48,14 @@ class SmartChatAgent:
         except Exception as e:
             return f"An error occurred: {str(e)}"
 
+    def invoke(self, input_data: dict) -> str:
+        """Invoke the agent with input data and metadata."""
+        try:
+            response = self.executor.invoke(input_data)
+            return response["output"]
+        except Exception as e:
+            return f"An error occurred: {str(e)}"
+
     def clear_chat_history(self):
         """Clear the chat history and reinitialize the AgentExecutor."""
         self.executor.memory.clear()

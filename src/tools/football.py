@@ -5,7 +5,13 @@ from langchain.prompts import PromptTemplate
 
 
 from stats.competitions import get_matches
-from stats.matches import get_lineups, get_match_stats_summary, get_players_stats
+from stats.matches import (
+    get_lineups,
+    get_match_stats_summary,
+    get_players_stats,
+    get_match_score_details,
+)
+
 import json
 import yaml
 import streamlit as st
@@ -123,11 +129,36 @@ def get_match_details_tool(action_input: str) -> str:
         - action_input(str): The input data containing the match_id.
           format: {
               "match_id": 12345
-              "competition_id": 123,
-                "season_id": 02
+              "season_id": 02,
+              "competition_id": 123
             }
     """
     return json.dumps(retrieve_match_details(action_input))
+
+
+@tool
+@st.cache_data(ttl=3600)
+def get_match_score_details_tool(action_input: str) -> str:
+    """
+    Get the summary of goals scored in a match including the goal scorer, minute and team.
+
+    Args:
+        - action_input(str): The input data containing the match_id.
+          format: {
+              "competition_id": 12345,
+              "season_id": 02,
+              "match_id": 12345
+            }
+    """
+    match_id = int(json.loads(action_input)["match_id"])
+    competition_id = int(json.loads(action_input)["competition_id"])
+    season_id = int(json.loads(action_input)["season_id"])
+
+    score_details = get_match_score_details(
+        competition_id=competition_id, season_id=season_id, match_id=match_id
+    )
+
+    return json.dumps(score_details)
 
 
 @tool
@@ -144,7 +175,24 @@ def get_match_stats_tool(action_input: str) -> str:
             }
     """
     match_id = int(json.loads(action_input)["match_id"])
-    stats = get_match_stats_summary(match_id)
+
+    stats_map = {
+        "Shots": "Shot",
+        "Pass": "Pass",
+        "Fouls": {"type": "Foul Committed"},
+        "Corners": {"pass_type": "Corner"},
+        "Yellow Cards": {
+            "foul_committed_card": "Yellow Card",
+            "bad_behavior_card": "Yellow Card",
+        },
+        "Red Cards": {
+            "foul_committed_card": "Red Card",
+            "bad_behavior_card": "Red Card",
+        },
+        "Offsides": "Offside",
+    }
+
+    stats = get_match_stats_summary(match_id=match_id, stats_map=stats_map)
     return json.dumps(stats)
 
 

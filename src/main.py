@@ -225,7 +225,7 @@ def Sidebar():
         # Visualizations
         st.sidebar.header("📊 Match Visualizations")
 
-        options = ["🤖 Match Chat", "🔎 Data Explorer"]
+        options = ["🤖 Expert Chat", "🎤 Match Commentator", "🔎 Data Explorer"]
         visualization = st.sidebar.radio("Select a visualization to display:", options)
         set_state("selected_visualization", visualization)
 
@@ -256,9 +256,9 @@ def Main():
         return
 
     # ------------------------
-    # 🤖 Match Chat
+    # 🤖 Expert Chat
     # ------------------------
-    if visualization == "🤖 Match Chat":
+    if visualization == "🤖 Expert Chat":
 
         # Set up the agent
         agent = get_state("agent")
@@ -353,6 +353,19 @@ def Main():
             # Clear the streaming output and show the final response
             if CLEAR_STREAMING_THOUGHTS:
                 st.rerun()
+
+    # ------------------------
+    # 🎤 Match Commentator
+    # ------------------------
+    if visualization == "🎤 Match Commentator":
+
+        # Set up the agent
+        agent = get_state("agent")
+        if not agent:
+            agent = AiFootballAgent()
+            set_state("agent", agent)
+            
+        display_match_score(competition_id, season_id, match_id)
 
     # ------------------------
     # 🔎 Data Explorer

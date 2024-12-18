@@ -7,6 +7,7 @@ from tools.football import (
     get_match_details_tool,
     get_match_stats_tool,
     get_player_stats_tool,
+    get_match_score_details_tool,
 )
 
 
@@ -24,6 +25,7 @@ def _setup_tools() -> list[Tool]:
         get_player_stats_tool,
         get_specialist_comments_tool,
         get_match_stats_tool,
+        get_match_score_details_tool,
         Tool(
             name="SearchTeamInformation",
             func=search.run,

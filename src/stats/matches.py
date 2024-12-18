@@ -252,14 +252,14 @@ def get_match_score_details(competition_id, season_id, match_id) -> dict:
         alway_team_penalty_goals = 0
 
     return {
-        "home_team_name": teams[0],
-        "home_team_open_play": home_team_open_play_goals,
-        "home_team_penalty": home_team_penalty_goals,
-        "home_team_player_goals": home_team_player_goals_text,
-        "alway_team_name": teams[1],
-        "alway_team_open_play": alway_team_open_play_goals,
-        "alway_team_penalty": alway_team_penalty_goals,
-        "alway_team_player_goals": alway_team_player_goals_text,
+        "home_team_name": str(teams[0]),
+        "home_team_open_play": int(home_team_open_play_goals),
+        "home_team_penalty": int(home_team_penalty_goals),
+        "home_team_player_goals": str(home_team_player_goals_text),
+        "alway_team_name": str(teams[1]),
+        "alway_team_open_play": int(alway_team_open_play_goals),
+        "alway_team_penalty": int(alway_team_penalty_goals),
+        "alway_team_player_goals": str(alway_team_player_goals_text),
     }
 
 

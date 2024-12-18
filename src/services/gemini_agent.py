@@ -8,6 +8,6 @@ class GeminiAgent(SmartChatAgent):
     def _setup_llm(self) -> ChatGoogleGenerativeAI:
         self.name = "Gemini Chat Agent"
         return ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-1.5-flash",  # "gemini-pro" is also available
             google_api_key=os.getenv("GEMINI_API_KEY"),
         )
