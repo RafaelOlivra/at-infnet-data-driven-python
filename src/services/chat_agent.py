@@ -164,6 +164,8 @@ class SmartChatAgent:
         - Based on the tool's output, decide on the next action or provide your analysis.
         - If more data is needed, use another tool or refine your analysis.
         - If the task is complete, provide a final answer.
+        - Avoid generating code when possible, try to get the data from the available tools or strings if possible.
+        - Never reply with Action: None or Action: Stop. If you need have a final answer jump to the stopping condition.
 
         ### Stopping Condition:
         - When the analysis is complete or you think you don't need any tools, respond in this format:
