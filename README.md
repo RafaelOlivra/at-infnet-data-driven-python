@@ -1,4 +1,4 @@
-# Dashboard - StatsBombPy
+# 🤖 AI Football Match Analyzer
 
 ## Descrição do Projeto
 
