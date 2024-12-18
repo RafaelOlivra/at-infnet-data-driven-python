@@ -1,0 +1,13 @@
+statsbombpy
+fastapi
+mplsoccer
+matplotlib
+langchain==0.3.7
+langchain-community==0.3.7
+langchain-core==0.3.19
+langchain-google-genai==2.0.4
+langchain-openai==0.2.8
+pyowm==3.3.0
+python-dotenv==1.0.1
+streamlit==1.40.2
+wikipedia==1.4.0
