@@ -2,6 +2,7 @@ from langchain.tools import tool
 from langchain.chains import LLMChain
 from langchain_google_genai import GoogleGenerativeAI
 from langchain.prompts import PromptTemplate
+from typing import Literal
 
 
 from stats.competitions import get_matches
@@ -17,19 +18,19 @@ import yaml
 import streamlit as st
 
 
-def filter_starting_xi(line_ups: str) -> dict:
+def filter_starting_xi(lineups: str) -> dict:
     """
     Filter the starting XI players from the provided lineups.
 
     Args:
-        line_ups (str): The JSON string containing the lineups of the teams.
+        lineups (str): The JSON string containing the lineups of the teams.
 
     Returns:
 
     """
-    line_ups_dict = json.loads(line_ups)
+    lineups_dict = json.loads(lineups)
     filter_starting_xi = {}
-    for team, team_line_up in line_ups_dict.items():
+    for team, team_line_up in lineups_dict.items():
         filter_starting_xi[team] = []
         for player in sorted(team_line_up, key=lambda x: x["jersey_number"]):
             try:
@@ -47,15 +48,28 @@ def filter_starting_xi(line_ups: str) -> dict:
     return filter_starting_xi
 
 
-def get_sport_specialist_comments_about_match(match_details: str, line_ups: str) -> str:
+def get_specialist_comments_about_match(
+    match_details: str,
+    lineups: str,
+    style: Literal["formal", "funny", "technical"] = "formal",
+) -> str:
     """
     Returns the comments of a sports specialist about a specific match.
     The comments are generated based on match details and lineups.
     """
 
-    line_ups = filter_starting_xi(line_ups)
+    lineups = filter_starting_xi(lineups)
 
-    agent_prompt = """
+    # Set the style of the specialist comments
+    if style == "formal":
+        style = "When responding, maintain a formal tone and provide detailed insights. Focus on the technical aspects of the game."
+    elif style == "funny":
+        style = "When responding, use emojis, humor and wit to engage the audience. Keep it light-hearted and entertaining."
+    elif style == "technical":
+        style = "When responding, focus on technical aspects and tactical insights. Be detailed and analytical."
+
+    agent_prompt = (
+        """
     You are a sports commentator with expertise in football (soccer). Respond as
     if you are delivering an engaging analysis for a TV audience. Here is the
     information to include:
@@ -72,9 +86,9 @@ def get_sport_specialist_comments_about_match(match_details: str, line_ups: str)
         - Mention any surprising decisions or notable absences.
     3.  Contextual Insights:
         - Explain the broader implications of the match (rivalry, league standings, or storylines).
-    4. Engaging Delivery:
-        - Use a lively, professional, and insightful tone, making the commentary
-        appealing to fans of all knowledge levels.
+    4. Engaging Delivery: """
+        + style
+        + """
     
     The match details are provided by the provided as follow: 
     {match_details}
@@ -84,13 +98,15 @@ def get_sport_specialist_comments_about_match(match_details: str, line_ups: str)
     
     Provide the expert commentary on the match as you are in a sports broadcast.
     Start your analysis now and engage the audience with your insights.
+    You can use markdown format your response and make it look more engaging.
     
     Say: "Hello everyone, I've watched to the match between [Home Team] and [Away Team]..."
     """
+    )
     llm = GoogleGenerativeAI(model="gemini-pro")
     input_variables = {
         "match_details": yaml.dump(match_details),
-        "lineups": yaml.dump(line_ups),
+        "lineups": yaml.dump(lineups),
     }
     prompt = PromptTemplate.from_template(agent_prompt)
     chain = LLMChain(llm=llm, prompt=prompt, verbose=True)
@@ -104,9 +120,9 @@ def retrieve_match_details(action_input: str) -> str:
     Args:
         - action_input(str): The input data containing the match_id.
           format: {
-              "match_id": 12345
+              "match_id": 12345,
               "competition_id": 123,
-                "season_id": 02
+              "season_id": 02
             }
     """
     match_id = json.loads(action_input)["match_id"]
@@ -232,5 +248,5 @@ def get_specialist_comments_tool(action_input: str) -> str:
             }
     """
     match_details = retrieve_match_details(action_input)
-    line_ups = get_lineups(match_details["match_id"])
-    return get_sport_specialist_comments_about_match(match_details, line_ups)
+    lineups = get_lineups(match_details["match_id"])
+    return get_specialist_comments_about_match(match_details, lineups)

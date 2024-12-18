@@ -6,6 +6,11 @@ from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 from dotenv import load_dotenv
 from stats.competitions import get_competitions, get_matches
 from stats.matches import get_match_df, get_match_score_details, get_match_stats_summary
+from tools.football import (
+    get_specialist_comments_about_match,
+    get_lineups,
+    retrieve_match_details,
+)
 from services.gemini_agent import GeminiAgent as AiFootballAgent
 
 # Load environment variables
@@ -225,7 +230,7 @@ def Sidebar():
         # Visualizations
         st.sidebar.header("📊 Match Visualizations")
 
-        options = ["🤖 Expert Chat", "🎤 Match Commentator", "🔎 Data Explorer"]
+        options = ["🤖 Expert Chat", "🎙️ Match Commentator", "🔎 Data Explorer"]
         visualization = st.sidebar.radio("Select a visualization to display:", options)
         set_state("selected_visualization", visualization)
 
@@ -355,17 +360,49 @@ def Main():
                 st.rerun()
 
     # ------------------------
-    # 🎤 Match Commentator
+    # 🎙️ Match Commentator
     # ------------------------
-    if visualization == "🎤 Match Commentator":
+    if visualization == "🎙️ Match Commentator":
 
         # Set up the agent
         agent = get_state("agent")
         if not agent:
             agent = AiFootballAgent()
             set_state("agent", agent)
-            
+
         display_match_score(competition_id, season_id, match_id)
+
+        # Narration style selection
+        narration_style = st.selectbox(
+            "Select a narration style",
+            ["Formal", "Funny", "Technical"],
+            placeholder="...",
+        )
+
+        # Get the specialist comments
+        # We convert this to a string so we take advantage of the ai tool we
+        # already have developed
+        match_details = retrieve_match_details(
+            '{"match_id": '
+            + str(match_id)
+            + ', "competition_id": '
+            + str(competition_id)
+            + ',"season_id": '
+            + str(season_id)
+            + "}"
+        )
+        lineups = get_lineups(match_id)
+        if st.button(
+            "Generate Match Commentary", type="primary", use_container_width=True
+        ):
+            with st.spinner("The commentator is getting ready..."):
+                specialist_comments = get_specialist_comments_about_match(
+                    match_details=match_details,
+                    lineups=lineups,
+                    style=narration_style.lower(),
+                )
+
+                st.markdown(specialist_comments)
 
     # ------------------------
     # 🔎 Data Explorer
