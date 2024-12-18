@@ -295,12 +295,10 @@ def Main():
     if not chat_history:
         st.warning(
             """
-            Ask a question to begin!  \
-                
-            - "Quem é o 7º presidente do Brasil?"
-            - "Quem foi o primeiro astronauta a pisar na Lua?"
-            - "Principais notícias para São Paulo"
-            - "Vídeos sobre como fazer um bolo de chocolate!"
+            Ask a question to begin!  
+
+            - "Who made the most passes in the match?"
+            - "Which player had the most shots in the first half?"
             """
         )
 
