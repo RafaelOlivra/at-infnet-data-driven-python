@@ -277,9 +277,6 @@ def Main():
             agent.clear_chat_history()
             set_state("previous_match_id", match_id)
 
-        # Clear the streaming leftover after we get the complete response
-        CLEAR_STREAMING_THOUGHTS = False
-
         # Clear chat history
         disable_btns = not agent.has_chat_history()
         with col2:
@@ -307,7 +304,16 @@ def Main():
         display_overall_match_stats(match_id, home_team, alway_team)
 
         # Display chat messages from history on app rerun
-        st.write("#### Chat")
+        col1, col2 = st.columns([8, 2])
+        col1.write("#### Chat")
+
+        # Clear the streaming leftover after we get the complete response
+        CLEAR_STREAMING_THOUGHTS = False
+        with col2:
+            # Show streaming thoughts
+            CLEAR_STREAMING_THOUGHTS = not st.checkbox(
+                "Keep Thoughts", key="clear-streaming-thoughts"
+            )
 
         chat_history = agent.chat_history()
         if not chat_history:

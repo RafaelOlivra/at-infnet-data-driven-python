@@ -170,7 +170,7 @@ def get_match_details_tool(action_input: str) -> str:
 
 
 @tool
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_match_score_details_tool(action_input: str) -> str:
     """
     Get the summary of goals scored in a match including the goal scorer, minute and team.
@@ -195,7 +195,7 @@ def get_match_score_details_tool(action_input: str) -> str:
 
 
 @tool
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_match_stats_tool(action_input: str) -> str:
     """
     Get the match statistics and metrics for a specific match.
@@ -230,7 +230,7 @@ def get_match_stats_tool(action_input: str) -> str:
 
 
 @tool
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_player_stats_tool(action_input: str) -> dict:
     """
     Get the summary statistics for all players based on the match_id.
@@ -249,7 +249,7 @@ def get_player_stats_tool(action_input: str) -> dict:
 
 
 @tool
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_specialist_comments_tool(action_input: str) -> str:
     """
     Provide an overview of the match and the match details.

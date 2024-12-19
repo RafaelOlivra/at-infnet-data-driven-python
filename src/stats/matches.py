@@ -165,7 +165,7 @@ def get_single_player_stats(
     return stats.model_dump_json()
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_teams(competition_id, season_id, match_id) -> List[str]:
     matches = get_matches_df(competition_id, season_id)
     match = matches[matches["match_id"] == match_id]
@@ -174,7 +174,7 @@ def get_teams(competition_id, season_id, match_id) -> List[str]:
     return home_team, away_team
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_goals_df(match_id, team="", shot_type="") -> pd.DataFrame:
     events = get_match_df(match_id)
     goals = events[events["shot_outcome"] == "Goal"]
@@ -193,7 +193,7 @@ def get_goals_df(match_id, team="", shot_type="") -> pd.DataFrame:
     return goals
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_match_score_details(competition_id, season_id, match_id) -> dict:
 
     # Get goals for open play and penalties
@@ -271,7 +271,7 @@ def get_match_score_details(competition_id, season_id, match_id) -> dict:
     }
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_match_stats_summary(match_id: int, stats_map: dict = None) -> dict:
     events = get_match_df(match_id)
 

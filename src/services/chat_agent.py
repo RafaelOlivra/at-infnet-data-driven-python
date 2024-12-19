@@ -148,9 +148,12 @@ class SmartChatAgent:
         - To use a tool, respond exactly in this format:
 
         Thought: [Your reasoning about what action to take next]
-        Action: [The name of the tool to use]
+        Action: [The name of the tool to use] (NEVER reply with None or Stop)
         Action Input: [The input required by the tool, such as the match_id or specific data]
         Observation: [The output or result from the tool]
+        
+        NEVER reply with Action: None or Action: Stop.
+        THIS IS SUPER IMPORTANT!
 
         Example:
             Thought: I need to retrieve the basic details of the match to provide an overview.
@@ -165,9 +168,8 @@ class SmartChatAgent:
         - If more data is needed, use another tool or refine your analysis.
         - If the task is complete, provide a final answer.
         - Avoid generating code when possible, try to get the data from the available tools or strings if possible.
-        - NEVER reply with Action: None or Action: Stop. If you need have a final answer jump to the stopping condition.
-          THIS IS SUPER IMPORTANT!
-
+        - If you need have a final answer jump to the stopping condition right away.
+        
         ### Stopping Condition:
         - When the analysis is complete or you think you don't need any tools, respond in this format:
         
