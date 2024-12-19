@@ -9,6 +9,7 @@ from stats.matches import get_match_df, get_match_score_details, get_match_stats
 from tools.football import (
     get_specialist_comments_about_match,
     get_lineups,
+    retrieve_match_details_action,
     retrieve_match_details,
 )
 from services.gemini_agent import GeminiAgent as AiFootballAgent
@@ -382,15 +383,7 @@ def Main():
         # Get the specialist comments
         # We convert this to a string so we take advantage of the ai tool we
         # already have developed
-        match_details = retrieve_match_details(
-            '{"match_id": '
-            + str(match_id)
-            + ', "competition_id": '
-            + str(competition_id)
-            + ',"season_id": '
-            + str(season_id)
-            + "}"
-        )
+        match_details = retrieve_match_details(competition_id, season_id, match_id)
         lineups = get_lineups(match_id)
         if st.button(
             "Generate Match Commentary", type="primary", use_container_width=True
@@ -411,16 +404,16 @@ def Main():
 
         display_match_score(competition_id, season_id, match_id)
 
-        st.write("#### Data Explorer")
+        st.write("##### Filter and Explore Match Data")
 
         # Make a multiselect for selecting the columns to display
         columns = st.multiselect(
-            "Columns", match_df.columns.tolist(), default=match_df.columns.tolist()
+            "Columns", match_df.columns.tolist(), default=["player", "shot_outcome"]
         )
         df = match_df[columns]
 
         # Allow user to filter the displayed data with a search_filter box
-        search_filter = st.text_input("Filter Columns", "")
+        search_filter = st.text_input("Filter Contents", "Goal")
         if search_filter:
             df = df[
                 df.astype(str)
@@ -430,6 +423,20 @@ def Main():
 
         # Show the data in a dataframe
         st.dataframe(df, use_container_width=True)
+
+        # Show a bar graph of the data
+        st.write("##### Data Visualization")
+
+        # Count events by player
+        if "player" in df.columns:
+            # Drop null values
+            df = df.dropna()
+            player_counts = df["player"].value_counts()
+            st.bar_chart(player_counts)
+        else:
+            st.info(
+                """Select the 'player' column and 'shot_outcome' to display a bar chart. You can also use the 'Filter Contents' field to filter the displayed data."""
+            )
 
         # Download the filtered data
         st.write("##### Download Data")

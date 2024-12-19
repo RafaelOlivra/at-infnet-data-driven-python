@@ -48,10 +48,13 @@ def filter_starting_xi(lineups: str) -> dict:
     return filter_starting_xi
 
 
+COMMENTARY_STYLES = Literal["formal", "funny", "technical"]
+
+
 def get_specialist_comments_about_match(
     match_details: str,
     lineups: str,
-    style: Literal["formal", "funny", "technical"] = "formal",
+    style: COMMENTARY_STYLES = "formal",
 ) -> str:
     """
     Returns the comments of a sports specialist about a specific match.
@@ -113,7 +116,21 @@ def get_specialist_comments_about_match(
     return chain.run(**input_variables)
 
 
-def retrieve_match_details(action_input: str) -> str:
+def retrieve_match_details(competition_id: int, season_id: int, match_id: int) -> str:
+    """Retrieve the match details for a specific match."""
+    match_details = (
+        '{"match_id": '
+        + str(match_id)
+        + ', "competition_id": '
+        + str(competition_id)
+        + ',"season_id": '
+        + str(season_id)
+        + "}"
+    )
+    return retrieve_match_details_action(match_details)
+
+
+def retrieve_match_details_action(action_input: str) -> str:
     """
     Get the details of a specific match
 
@@ -149,7 +166,7 @@ def get_match_details_tool(action_input: str) -> str:
               "competition_id": 123
             }
     """
-    return json.dumps(retrieve_match_details(action_input))
+    return json.dumps(retrieve_match_details_action(action_input))
 
 
 @tool
@@ -247,6 +264,6 @@ def get_specialist_comments_tool(action_input: str) -> str:
               "match_id": 12345
             }
     """
-    match_details = retrieve_match_details(action_input)
+    match_details = retrieve_match_details_action(action_input)
     lineups = get_lineups(match_details["match_id"])
     return get_specialist_comments_about_match(match_details, lineups)

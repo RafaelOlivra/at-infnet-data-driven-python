@@ -19,6 +19,31 @@
                 "console": "integratedTerminal"
             },
             "preLaunchTask": "Activate Virtual Environment"
+        },
+        {
+            "name": "FastAPI: Run",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "routers.api:app",
+                "--host",
+                "127.0.0.1",
+                "--app-dir",
+                "./src",
+                "--port",
+                "8000",
+                "--reload"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONUNBUFFERED": "1"
+            },
+            "windows": {
+                "console": "integratedTerminal"
+            },
+            "preLaunchTask": "Activate Virtual Environment"
         }
     ]
 }

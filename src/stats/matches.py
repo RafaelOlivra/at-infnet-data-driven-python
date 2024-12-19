@@ -57,13 +57,11 @@ def get_match_df(match_id: int) -> pd.DataFrame:
     return sb.events(match_id=match_id)
 
 
+MATCH_TIME_MAP = Literal["whole_match", "first_half", "second_half", "overtime"]
+
+
 @st.cache_resource(ttl=3600)
-def get_players_stats(
-    match_id: int,
-    time: Literal[
-        "whole_match", "first_half", "second_half", "overtime"
-    ] = "whole_match",
-) -> str:
+def get_players_stats(match_id: int, time: MATCH_TIME_MAP = "whole_match") -> str:
     # Get all players names in the match
     events = get_match_df(match_id)
 
