@@ -92,8 +92,7 @@ def player_stats(
         )
 
         try:
-            player_stats_json = json.loads(player_stats)
-            return player_stats_json
+            return json.loads(player_stats)
         except ValueError:
             raise HTTPException(
                 status_code=404, detail="Could not retrieve player stats"

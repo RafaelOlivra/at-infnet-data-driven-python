@@ -408,7 +408,9 @@ def Main():
 
         # Make a multiselect for selecting the columns to display
         columns = st.multiselect(
-            "Columns", match_df.columns.tolist(), default=["player", "shot_outcome"]
+            "Columns",
+            match_df.columns.tolist(),
+            default=["player", "shot_outcome"],
         )
         df = match_df[columns]
 

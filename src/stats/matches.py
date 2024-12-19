@@ -8,13 +8,9 @@ from statsbombpy import sb
 from typing import List
 
 from stats.competitions import get_matches_df
+
+from models.player_stats import PlayerStats
 from typing import Literal
-
-
-class PlayerStatsError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
 
 
 def to_json(df: pd.DataFrame) -> str:
@@ -65,13 +61,7 @@ def get_players_stats(match_id: int, time: MATCH_TIME_MAP = "whole_match") -> st
     # Get all players names in the match
     events = get_match_df(match_id)
 
-    # Filter events based on the time
-    if time == "first_half":
-        events = events[events["minute"] <= 45]
-    elif time == "second_half":
-        events = events[events["minute"] > 45]
-    elif time == "overtime":
-        events = events[events["minute"] > 90]
+    print(time)
 
     # Get the unique players
     players = events["player"].dropna().unique()
@@ -79,19 +69,22 @@ def get_players_stats(match_id: int, time: MATCH_TIME_MAP = "whole_match") -> st
     # Get the stats for each player
     players_stats = {}
     for player in players:
-        players_stats[player] = get_single_player_stats(match_id, player)
+        players_stats[player] = get_single_player_stats(match_id, player, time)
 
     return to_json(players_stats)
 
 
 @st.cache_resource(ttl=3600)
-def get_single_player_stats(match_id, player_name) -> str:
+def get_single_player_stats(
+    match_id, player_name, time: MATCH_TIME_MAP = "whole_match"
+) -> str:
     """
     Returns the consolidated statistics of a specific player in a match.
 
     Parameters:
         match_id (int): ID of the match (provided by StatsBomb).
         player_name (str): Full name of the player.
+        time (str): Time of the match to consider (whole_match, first_half, second_half, overtime).
 
     Returns:
         dict: Consolidated statistics of the player.
@@ -103,18 +96,24 @@ def get_single_player_stats(match_id, player_name) -> str:
         # Load match events
         events = sb.events(match_id=match_id)
 
+        # Filter events based on the time
+        if time == "first_half":
+            events = events[events["minute"] <= 45]
+        elif time == "second_half":
+            events = events[events["minute"] > 45]
+        elif time == "overtime":
+            events = events[events["minute"] > 90]
+
         # Validate if events were loaded
         if events.empty:
-            raise PlayerStatsError(f"No events found for the match with ID {match_id}.")
+            raise Exception("No events found for the match")
 
         # Filter events for the specific player
         player_events = events[events["player"] == player_name]
 
         # Check if the player is present in the events
         if player_events.empty:
-            raise PlayerStatsError(
-                f"No events found for player '{player_name}' in match {match_id}."
-            )
+            raise Exception("Player not found in the match events")
 
         # Consolidate statistics
         stats = {
@@ -144,15 +143,26 @@ def get_single_player_stats(match_id, player_name) -> str:
                 player_events["type"] == "Dribble"
             ].shape[0],
         }
+        stats = PlayerStats(**stats)
 
-    except PlayerStatsError as e:
-        # Propagate the error message
-        raise PlayerStatsError(e.message)
     except Exception as e:
-        # Handle any other unexpected error
-        raise PlayerStatsError(f"An unexpected error occurred: {str(e)}")
+        # Return empty stats if any error occurs
+        stats = PlayerStats(
+            **{
+                "passes_completed": 0,
+                "passes_attempted": 0,
+                "shots": 0,
+                "shots_on_target": 0,
+                "fouls_committed": 0,
+                "fouls_won": 0,
+                "tackles": 0,
+                "interceptions": 0,
+                "dribbles_successful": 0,
+                "dribbles_attempted": 0,
+            }
+        )
 
-    return to_json(stats)
+    return stats.model_dump_json()
 
 
 @st.cache_data(ttl=3600)
