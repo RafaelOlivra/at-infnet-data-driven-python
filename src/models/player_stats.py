@@ -12,3 +12,5 @@ class PlayerStats(BaseModel):
     interceptions: int
     dribbles_successful: int
     dribbles_attempted: int
+    yellow_cards: int
+    red_cards: int

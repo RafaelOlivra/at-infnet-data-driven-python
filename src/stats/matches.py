@@ -87,10 +87,19 @@ def get_single_player_stats(
         time (str): Time of the match to consider (whole_match, first_half, second_half, overtime).
 
     Returns:
-        dict: Consolidated statistics of the player.
-
-    Raises:
-        PlayerStatsError: If any issue occurs while fetching or calculating the statistics.
+        dict: Consolidated statistics of the player. Available statistics are:
+            - passes_completed
+            - passes_attempted
+            - shots
+            - shots_on_target
+            - fouls_committed
+            - fouls_won
+            - tackles
+            - interceptions
+            - dribbles_successful
+            - dribbles_attempted
+            - yellow_cards
+            - red_cards
     """
     try:
         # Load match events
@@ -110,6 +119,9 @@ def get_single_player_stats(
 
         # Filter events for the specific player
         player_events = events[events["player"] == player_name]
+
+        # Set the player_events as a DataFrame
+        player_events = pd.DataFrame(player_events)
 
         # Check if the player is present in the events
         if player_events.empty:
@@ -142,10 +154,31 @@ def get_single_player_stats(
             "dribbles_attempted": player_events[
                 player_events["type"] == "Dribble"
             ].shape[0],
+            "yellow_cards": player_events[
+                (
+                    "foul_committed_card" in player_events.columns.values
+                    and player_events["foul_committed_card"] == "Yellow Card"
+                )
+                | (
+                    "bad_behavior_card" in player_events.columns.values
+                    and player_events["bad_behavior_card"] == "Yellow Card"
+                )
+            ].shape[0],
+            "red_cards": player_events[
+                (
+                    "foul_committed_card" in player_events.columns.values
+                    and player_events["foul_committed_card"] == "Red Card"
+                )
+                | (
+                    "bad_behavior_card" in player_events.columns.values
+                    and player_events["bad_behavior_card"] == "Red Card"
+                )
+            ].shape[0],
         }
         stats = PlayerStats(**stats)
 
     except Exception as e:
+        print(f"Error: {e}")
         # Return empty stats if any error occurs
         stats = PlayerStats(
             **{
@@ -159,6 +192,8 @@ def get_single_player_stats(
                 "interceptions": 0,
                 "dribbles_successful": 0,
                 "dribbles_attempted": 0,
+                "yellow_cards": 0,
+                "red_cards": 0,
             }
         )
 

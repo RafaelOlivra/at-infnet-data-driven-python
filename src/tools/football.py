@@ -10,6 +10,7 @@ from stats.matches import (
     get_lineups,
     get_match_stats_summary,
     get_players_stats,
+    get_single_player_stats,
     get_match_score_details,
 )
 
@@ -233,7 +234,7 @@ def get_match_stats_tool(action_input: str) -> str:
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_player_stats_tool(action_input: str) -> dict:
     """
-    Get the summary statistics for all players based on the match_id.
+    Get the summary statistics for all players based on the match_id and time.
 
     Args:
         - action_input(str): The input data containing the match_id.
@@ -245,6 +246,29 @@ def get_player_stats_tool(action_input: str) -> dict:
     match_id = int(json.loads(action_input)["match_id"])
     time = json.loads(action_input)["time"]
     player_stats = get_players_stats(match_id=match_id, time=time)
+    return player_stats
+
+
+@tool
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_single_player_stats_tool(action_input: str) -> dict:
+    """
+    Get the summary statistics for a single player based on the match_id, player_name and time.
+
+    Args:
+        - action_input(str): The input data containing the match_id and player_name.
+          format: {
+              "match_id": 12345,
+              "player_name": "Kohr",
+              "time": "whole_match" (Use any of this: "whole_match", "first_half" or "second_half" or "overtime")
+            }
+    """
+    match_id = int(json.loads(action_input)["match_id"])
+    player_name = json.loads(action_input)["player_name"]
+    time = json.loads(action_input)["time"]
+    player_stats = get_single_player_stats(
+        match_id=match_id, player_name=player_name, time=time
+    )
     return player_stats
 
 

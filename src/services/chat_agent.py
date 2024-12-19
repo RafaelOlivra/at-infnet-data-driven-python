@@ -176,6 +176,9 @@ class SmartChatAgent:
         Thought: I have completed the analysis. No further tools are required.
         Final Answer: [Your final answer]
         
+        NOTE: Your final answer can be in markdown format to make it more engaging.
+        NOTE: Never reply with code or programming instructions. Always provide a human-readable response.
+        
         ## Chat History:
         {history}
 
